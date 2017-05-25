@@ -85,6 +85,7 @@ object FunctionCallParser {
 
   private[FunctionCallParser] def inParamLiteral(c: Char): State.Value = {
     if (Character.isWhitespace(c)) State.WHITESPACE
+    else if (c == ',') State.COMMA
     else if (Character.isAlphabetic(c) || Character.isDigit(c)) State.PARAM_LITERAL
     else if (c == ')') State.CLOSE_BRACKET
     else State.INVALID
@@ -101,9 +102,13 @@ object FunctionCallParser {
       state == State.COMMA
   }
 
-
-
   def parseFunctionCall(functionCall: String): Option[ParsedFunctionCall] = {
+    val result = parseFunctionCallDetailed(functionCall)
+    if (result.isDefined) Some(result.get._1)
+    else None
+  }
+
+  def parseFunctionCallDetailed(functionCall: String): Option[(ParsedFunctionCall, Int)] = {
 
     // Get the length of the function call
     val len = functionCall.length
@@ -174,7 +179,7 @@ object FunctionCallParser {
       // End of function call
       if (currentState == State.CLOSE_BRACKET) {
         println("Returning: " + parsedFunctionCall)
-        return Some(parsedFunctionCall)
+        return Some((parsedFunctionCall, i))
       }
 
       // Something went wrong with the parsing ...

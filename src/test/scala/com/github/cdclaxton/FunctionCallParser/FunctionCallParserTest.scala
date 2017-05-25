@@ -209,6 +209,16 @@ class FunctionCallParserTest extends FlatSpec with Matchers {
         Parameter(tpe = ParameterType.LITERAL, value = "ab"))))
   }
 
+  it should "handle a two numeric and a single literal argument" in {
+    val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall("""fn(2,4,ab)""")
+    result.isDefined should be (true)
+    result.get should be (ParsedFunctionCall(functionName = "fn",
+      params = Seq(
+        Parameter(tpe = ParameterType.NUMERIC, value = "2"),
+        Parameter(tpe = ParameterType.NUMERIC, value = "4"),
+        Parameter(tpe = ParameterType.LITERAL, value = "ab"))))
+  }
+
   it should "handle a single numeric and a single literal argument with whitespace" in {
     val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall("""fn(2, ab)""")
     result.isDefined should be (true)
@@ -216,6 +226,36 @@ class FunctionCallParserTest extends FlatSpec with Matchers {
       params = Seq(
         Parameter(tpe = ParameterType.NUMERIC, value = "2"),
         Parameter(tpe = ParameterType.LITERAL, value = "ab"))))
+  }
+
+  it should "handle a single literal argument and single numeric with whitespace" in {
+    val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall("""fn(ab, 3)""")
+    result.isDefined should be (true)
+    result.get should be (ParsedFunctionCall(functionName = "fn",
+      params = Seq(
+        Parameter(tpe = ParameterType.LITERAL, value = "ab"),
+        Parameter(tpe = ParameterType.NUMERIC, value = "3"))))
+  }
+
+  // Literal and string arguments
+  // -------------------------------------------------------------------------------------------------------------------
+
+  it should "handle a single numeric and a single string argument" in {
+    val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall("""fn(2, "ab")""")
+    result.isDefined should be (true)
+    result.get should be (ParsedFunctionCall(functionName = "fn",
+      params = Seq(
+        Parameter(tpe = ParameterType.NUMERIC, value = "2"),
+        Parameter(tpe = ParameterType.QUOTED_STRING, value = "ab"))))
+  }
+
+  it should "handle a single string and a single numeric argument" in {
+    val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall("""fn("ab", 2)""")
+    result.isDefined should be (true)
+    result.get should be (ParsedFunctionCall(functionName = "fn",
+      params = Seq(
+        Parameter(tpe = ParameterType.QUOTED_STRING, value = "ab"),
+        Parameter(tpe = ParameterType.NUMERIC, value = "2"))))
   }
 
   // Error cases
@@ -261,6 +301,37 @@ class FunctionCallParserTest extends FlatSpec with Matchers {
 //    result.isDefined should be (false)
 //  }
 
+  // parseFunctionCallDetailed() tests
+  // -------------------------------------------------------------------------------------------------------------------
 
+  "parseFunctionCallDetailed()" should "return the index of the last character of the function call" in {
+    val result: Option[(ParsedFunctionCall, Int)] = FunctionCallParser.parseFunctionCallDetailed("""fn("ab", 2)""")
+    result.isDefined should be (true)
+    result.get._1 should be (ParsedFunctionCall(functionName = "fn",
+      params = Seq(
+        Parameter(tpe = ParameterType.QUOTED_STRING, value = "ab"),
+        Parameter(tpe = ParameterType.NUMERIC, value = "2"))))
+    result.get._2 should be (10)
+  }
+
+  it should "return the index of the last character of the function call when there is trailing whitespace" in {
+    val result: Option[(ParsedFunctionCall, Int)] = FunctionCallParser.parseFunctionCallDetailed("""fn("ab", 2) """)
+    result.isDefined should be (true)
+    result.get._1 should be (ParsedFunctionCall(functionName = "fn",
+      params = Seq(
+        Parameter(tpe = ParameterType.QUOTED_STRING, value = "ab"),
+        Parameter(tpe = ParameterType.NUMERIC, value = "2"))))
+    result.get._2 should be (10)
+  }
+
+  it should "ignore characters after the closing bracket" in {
+    val result: Option[(ParsedFunctionCall, Int)] = FunctionCallParser.parseFunctionCallDetailed("""fn("ab", 2),""")
+    result.isDefined should be (true)
+    result.get._1 should be (ParsedFunctionCall(functionName = "fn",
+      params = Seq(
+        Parameter(tpe = ParameterType.QUOTED_STRING, value = "ab"),
+        Parameter(tpe = ParameterType.NUMERIC, value = "2"))))
+    result.get._2 should be (10)
+  }
 
 }

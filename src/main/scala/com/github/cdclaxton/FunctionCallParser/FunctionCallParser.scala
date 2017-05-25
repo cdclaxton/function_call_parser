@@ -27,7 +27,7 @@ object FunctionCallParser {
   }
 
   private[FunctionCallParser] def inFunctionName(c: Char): State.Value = {
-    if (Character.isAlphabetic(c) || Character.isDigit(c)) State.FUNCTION_NAME
+    if (Character.isAlphabetic(c) || Character.isDigit(c) || c == '_') State.FUNCTION_NAME
     else if (c == '(') State.OPENING_BRACKET
     else State.INVALID
   }

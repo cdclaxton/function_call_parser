@@ -34,6 +34,12 @@ class FunctionCallParserTest extends FlatSpec with Matchers {
     result.get should be (ParsedFunctionCall(functionName = "f1", params = Nil))
   }
 
+  it should "work correctly when the function name contains an underscore" in {
+    val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall("""f_g()""")
+    result.isDefined should be (true)
+    result.get should be (ParsedFunctionCall(functionName = "f_g", params = Nil))
+  }
+
   // Numeric-only arguments
   // -------------------------------------------------------------------------------------------------------------------
 

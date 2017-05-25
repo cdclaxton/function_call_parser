@@ -1,7 +1,5 @@
 package com.github.cdclaxton.FunctionCallParser
 
-import org.apache.commons.lang3.StringEscapeUtils.escapeJava
-
 object ParameterType extends Enumeration {
   type ParameterType = Value
   val QUOTED_STRING, LITERAL, NUMERIC = Value
@@ -164,7 +162,7 @@ object FunctionCallParser {
         val param: Option[Parameter] = if (prevState == State.PARAM_LITERAL) Some(Parameter(ParameterType.LITERAL, parameterString))
           else if (prevState == State.PARAM_NUMERIC) Some(Parameter(ParameterType.NUMERIC, parameterString))
           else if (prevState == State.PARAM_QUOTED_CLOSED) {
-            val str = escapeJava(parameterString.substring(1, parameterString.length-1))
+            val str = parameterString.substring(1, parameterString.length-1)
             Some(Parameter(ParameterType.QUOTED_STRING, str))
           }
 

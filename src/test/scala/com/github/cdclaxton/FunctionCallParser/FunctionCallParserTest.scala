@@ -186,15 +186,15 @@ class FunctionCallParserTest extends FlatSpec with Matchers {
   it should "handle a single quoted parameter with an escaped quotation mark" in {
     val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall("""fn("ab\"")""")
     result.isDefined should be(true)
-    result.get should be(ParsedFunctionCall(functionName = "f",
-      params = Seq(Parameter(tpe = ParameterType.QUOTED_STRING, value = "ab\""))))
+    result.get should be(ParsedFunctionCall(functionName = "fn",
+      params = Seq(Parameter(tpe = ParameterType.QUOTED_STRING, value = """ab\""""))))
   }
 
   it should "handle a single quoted parameter with an escaped quotation mark with a character after" in {
     val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall("""fn("ab\"c")""")
     result.isDefined should be(true)
-    result.get should be(ParsedFunctionCall(functionName = "f",
-      params = Seq(Parameter(tpe = ParameterType.QUOTED_STRING, value = "ab\"c"))))
+    result.get should be(ParsedFunctionCall(functionName = "fn",
+      params = Seq(Parameter(tpe = ParameterType.QUOTED_STRING, value = """ab\"c"""))))
   }
 
   // Literal and numeric arguments

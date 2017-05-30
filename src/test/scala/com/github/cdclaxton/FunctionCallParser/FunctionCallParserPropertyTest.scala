@@ -13,7 +13,7 @@ object FunctionCallParserPropertyTest extends Properties("Function call parser")
     remainder <- Gen.alphaNumStr
   } yield s"$start$remainder"
 
-  val validFunctionName = functionName suchThat(_.length >= 0)
+  val validFunctionName = functionName suchThat((x: String) => x.length > 0 && Character.isAlphabetic(x(0)))
 
   property("No arguments") = Prop.forAll(validFunctionName) { functionName =>
     val functionCall = s"$functionName()"
@@ -97,6 +97,26 @@ object FunctionCallParserPropertyTest extends Properties("Function call parser")
         (result.get.params.length == 1) :| "number of arguments" &&
         (result.get.params.head.tpe == ParameterType.QUOTED_STRING) :| "parameter type" &&
         (result.get.params.head.value == str) :| "parameter value"
+    }
+  }
+
+  property("Two quoted arguments") = Prop.forAll(validFunctionName) { functionName =>
+    (functionName.length > 0) ==> {
+      Prop.forAll { str1: String =>
+        Prop.forAll { str2: String =>
+
+          val functionCall = s"""$functionName("$str1", "$str2")"""
+          val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall(functionCall)
+
+          result.isDefined :| "defined" &&
+            (result.get.functionName == functionName) :| "function name" &&
+            (result.get.params.length == 2) :| "number of arguments" &&
+            (result.get.params.head.tpe == ParameterType.QUOTED_STRING) :| "parameter type 1" &&
+            (result.get.params.head.value == str1) :| "parameter value 1" &&
+            (result.get.params(1).tpe == ParameterType.QUOTED_STRING) :| "parameter type 2" &&
+            (result.get.params(1).value == str2) :| "parameter value 2"
+        }
+      }
     }
   }
 

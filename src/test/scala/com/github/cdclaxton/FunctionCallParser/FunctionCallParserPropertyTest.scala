@@ -3,6 +3,8 @@ package com.github.cdclaxton.FunctionCallParser
 import org.scalacheck.{Arbitrary, Gen, Prop, Properties}
 import org.scalacheck.Prop.BooleanOperators
 
+import scala.util.Random
+
 object FunctionCallParserPropertyTest extends Properties("Function call parser") {
 
   /**
@@ -123,7 +125,7 @@ object FunctionCallParserPropertyTest extends Properties("Function call parser")
   /**
     * Generate an arbitrary numeric parameter (integer or double type).
     */
-  private val genNumeric: Gen[Parameter] = for {
+  private val genNumericParameter: Gen[Parameter] = for {
     intValue <- Arbitrary.arbitrary[Int]
     doubleValue <- Arbitrary.arbitrary[Double]
     useIntValue <- Arbitrary.arbitrary[Boolean]
@@ -132,32 +134,114 @@ object FunctionCallParserPropertyTest extends Properties("Function call parser")
     Parameter(ParameterType.NUMERIC, s"$value")
   }
 
+  /**
+    * Generate an arbitrary quoted string parameter.
+    */
+  private val genStringParameter: Gen[Parameter] = for {
+    value <- Arbitrary.arbitrary[String]
+  } yield Parameter(ParameterType.QUOTED_STRING, value)
+
+  /**
+    * Generate an arbitrary literal parameter.
+    */
+  private val genLiteralParameter = for {
+    start <- Gen.alphaChar
+    remainder <- Gen.alphaNumStr
+  } yield Parameter(ParameterType.LITERAL, s"$start$remainder")
+
+  /**
+    * Generate a list of mixed parameter types.
+    */
+  private val genMixedParameters: Gen[List[Parameter]] = for {
+    numeric <- Gen.listOfN(5, genNumericParameter)
+    literal <- Gen.listOfN(5, genLiteralParameter)
+    string <- Gen.listOfN(5, genStringParameter)
+    numNumeric <- Gen.choose(0, 5)
+    numLiteral <- Gen.choose(0, 5)
+    numString <- Gen.choose(0, 5)
+  } yield {
+    Random.shuffle(numeric.take(numNumeric) ++ literal.take(numLiteral) ++ string.take(numString))
+  }
+
+  /**
+    * Build the string represenation of a parameter as it would appear in a function call.
+    *
+    * @param param Parameter.
+    * @return String representation.
+    */
   private def buildParameterValue(param: Parameter): String = {
     if (param.tpe == ParameterType.QUOTED_STRING) s""""${param.value}""""
     else s"""${param.value}"""
   }
 
+  /**
+    * Build a function call given its name and a list of parameters.
+    *
+    * @param functionName Name of the function.
+    * @param params       List of parameters.
+    * @return String representation of a function call.
+    */
   private def buildFunctionCall(functionName: String,
                                 params: List[Parameter]): String = {
     functionName + params.map((p: Parameter) => buildParameterValue(p)).mkString("(", ", ", ")")
   }
 
-  private def parametersCorrect(params1: Seq[Parameter],
-                                params2: Seq[Parameter]): Boolean = {
-    params1.zip(params2).forall( (p) => p._1 == p._2 )
-  }
-
-  property("Numeric arguments") = Prop.forAll(validFunctionName) { functionName =>
+  property("List of numeric arguments") = Prop.forAll(validFunctionName) { functionName =>
     (functionName.length > 0) ==> {
-      Prop.forAll(Gen.nonEmptyListOf(genNumeric)) { value =>
+      Prop.forAll(Gen.nonEmptyListOf(genNumericParameter)) { params =>
 
-        val functionCall = buildFunctionCall(functionName, value)
+        val functionCall = buildFunctionCall(functionName, params)
         val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall(functionCall)
 
         result.isDefined :| "defined" &&
           (result.get.functionName == functionName) :| "function name" &&
-          (result.get.params.length == value.length) :| "number of parameters" &&
-          parametersCorrect(result.get.params, value) :| "parameters correct"
+          (result.get.params.length == params.length) :| "number of parameters" &&
+          (result.get.params == params) :| "parameters correct"
+      }
+    }
+  }
+
+  property("List of string arguments") = Prop.forAll(validFunctionName) { functionName =>
+    (functionName.length > 0) ==> {
+      Prop.forAll(Gen.nonEmptyListOf(genStringParameter)) { params =>
+
+        val functionCall = buildFunctionCall(functionName, params)
+        val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall(functionCall)
+
+        result.isDefined :| "defined" &&
+          (result.get.functionName == functionName) :| "function name" &&
+          (result.get.params.length == params.length) :| "number of parameters" &&
+          (result.get.params == params) :| "parameters correct"
+      }
+    }
+  }
+
+  property("List of literal arguments") = Prop.forAll(validFunctionName) { functionName =>
+    (functionName.length > 0) ==> {
+      Prop.forAll(Gen.nonEmptyListOf(genLiteralParameter)) { params =>
+
+        val functionCall = buildFunctionCall(functionName, params)
+        val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall(functionCall)
+
+        result.isDefined :| "defined" &&
+          (result.get.functionName == functionName) :| "function name" &&
+          (result.get.params.length == params.length) :| "number of parameters" &&
+          (result.get.params == params) :| "parameters correct"
+      }
+    }
+  }
+
+  property("Mixed arguments") = Prop.forAll(validFunctionName) { functionName =>
+    (functionName.length > 0) ==> {
+      Prop.forAll(genMixedParameters) { params =>
+
+        val functionCall = buildFunctionCall(functionName, params)
+        val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall(functionCall)
+
+        result.isDefined :| "defined" &&
+          (result.get.functionName == functionName) :| "function name" &&
+          (result.get.params.length == params.length) :| "number of parameters" &&
+          (result.get.params == params) :| "parameters correct"
       }
     }
   }

@@ -78,7 +78,7 @@ object FunctionCallParser {
   private[FunctionCallParser] def inParamNumeric(c: Char): State.Value = {
     if (Character.isWhitespace(c)) State.WHITESPACE
     else if (c == ',') State.COMMA
-    else if (Character.isDigit(c) || c == '.') State.PARAM_NUMERIC
+    else if (Character.isDigit(c) || c == '.' || c == 'E' || c == 'e' || c == '-') State.PARAM_NUMERIC
     else if (c == ')') State.CLOSE_BRACKET
     else State.INVALID
   }
@@ -102,13 +102,15 @@ object FunctionCallParser {
       state == State.COMMA
   }
 
-  def parseFunctionCall(functionCall: String): Option[ParsedFunctionCall] = {
-    val result = parseFunctionCallDetailed(functionCall)
+  def parseFunctionCall(functionCall: String,
+                        verbose: Boolean = false): Option[ParsedFunctionCall] = {
+    val result = parseFunctionCallDetailed(functionCall, verbose)
     if (result.isDefined) Some(result.get._1)
     else None
   }
 
-  def parseFunctionCallDetailed(functionCall: String): Option[(ParsedFunctionCall, Int)] = {
+  def parseFunctionCallDetailed(functionCall: String,
+                                verbose: Boolean = false): Option[(ParsedFunctionCall, Int)] = {
 
     // Get the length of the function call
     val len = functionCall.length
@@ -146,7 +148,7 @@ object FunctionCallParser {
       else if (prevState == State.PARAM_NUMERIC) inParamNumeric(c)
       else State.INVALID
 
-      //println("STATE: " + currentState)
+      if (verbose) println("CHAR: " + c + ", STATE: " + currentState)
 
       // End of function name
       if (currentState == State.OPENING_BRACKET && prevState == State.FUNCTION_NAME) {
@@ -183,7 +185,7 @@ object FunctionCallParser {
 
       // Something went wrong with the parsing ...
       if (currentState == State.INVALID) {
-        //println("INVALID STATE")
+        if (verbose) println("INVALID STATE")
         return None
       }
     }

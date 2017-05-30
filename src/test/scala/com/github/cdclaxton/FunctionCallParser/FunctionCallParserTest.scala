@@ -127,6 +127,42 @@ class FunctionCallParserTest extends FlatSpec with Matchers {
         Parameter(tpe = ParameterType.NUMERIC, value = "3"))))
   }
 
+  it should "handle a scientific notation numeric argument" in {
+    val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall("""fn(1.2e3)""")
+    result.isDefined should be (true)
+    result.get should be (ParsedFunctionCall(functionName = "fn",
+      params = Seq(
+        Parameter(tpe = ParameterType.NUMERIC, value = "1.2e3"))))
+  }
+
+  it should "handle a negative number in scientific notation" in {
+    val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall("""fn(-1.2E3)""")
+    result.isDefined should be (true)
+    result.get should be (ParsedFunctionCall(functionName = "fn",
+      params = Seq(
+        Parameter(tpe = ParameterType.NUMERIC, value = "-1.2E3"))))
+  }
+
+  it should "handle two arguments in scientific notation" in {
+    val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall("""fn(-1.2E3, 2.9e10)""")
+    result.isDefined should be (true)
+    result.get should be (ParsedFunctionCall(functionName = "fn",
+      params = Seq(
+        Parameter(tpe = ParameterType.NUMERIC, value = "-1.2E3"),
+        Parameter(tpe = ParameterType.NUMERIC, value = "2.9e10"))))
+  }
+
+  it should "handle four arguments in scientific notation" in {
+    val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall("""mdr(-4.566476837630887E-37, 1.590256498E9, 7.5888587E8, 1.1527215368903861E269)""", true)
+    result.isDefined should be (true)
+    result.get should be(ParsedFunctionCall(functionName = "mdr",
+      params = Seq(
+        Parameter(tpe = ParameterType.NUMERIC, value = "-4.566476837630887E-37"),
+        Parameter(tpe = ParameterType.NUMERIC, value = "1.590256498E9"),
+        Parameter(tpe = ParameterType.NUMERIC, value = "7.5888587E8"),
+        Parameter(tpe = ParameterType.NUMERIC, value = "1.1527215368903861E269"))))
+  }
+
   // Literal arguments
   // -------------------------------------------------------------------------------------------------------------------
 

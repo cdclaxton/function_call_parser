@@ -120,4 +120,46 @@ object FunctionCallParserPropertyTest extends Properties("Function call parser")
     }
   }
 
+  /**
+    * Generate an arbitrary numeric parameter (integer or double type).
+    */
+  private val genNumeric: Gen[Parameter] = for {
+    intValue <- Arbitrary.arbitrary[Int]
+    doubleValue <- Arbitrary.arbitrary[Double]
+    useIntValue <- Arbitrary.arbitrary[Boolean]
+  } yield {
+    val value: Double = if (useIntValue) intValue else doubleValue
+    Parameter(ParameterType.NUMERIC, s"$value")
+  }
+
+  private def buildParameterValue(param: Parameter): String = {
+    if (param.tpe == ParameterType.QUOTED_STRING) s""""${param.value}""""
+    else s"""${param.value}"""
+  }
+
+  private def buildFunctionCall(functionName: String,
+                                params: List[Parameter]): String = {
+    functionName + params.map((p: Parameter) => buildParameterValue(p)).mkString("(", ", ", ")")
+  }
+
+  private def parametersCorrect(params1: Seq[Parameter],
+                                params2: Seq[Parameter]): Boolean = {
+    params1.zip(params2).forall( (p) => p._1 == p._2 )
+  }
+
+  property("Numeric arguments") = Prop.forAll(validFunctionName) { functionName =>
+    (functionName.length > 0) ==> {
+      Prop.forAll(Gen.nonEmptyListOf(genNumeric)) { value =>
+
+        val functionCall = buildFunctionCall(functionName, value)
+        val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall(functionCall)
+
+        result.isDefined :| "defined" &&
+          (result.get.functionName == functionName) :| "function name" &&
+          (result.get.params.length == value.length) :| "number of parameters" &&
+          parametersCorrect(result.get.params, value) :| "parameters correct"
+      }
+    }
+  }
+
 }

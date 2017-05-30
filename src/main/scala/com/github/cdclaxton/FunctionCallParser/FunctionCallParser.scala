@@ -47,7 +47,7 @@ object FunctionCallParser {
 
   private[FunctionCallParser] def inStartParam(c: Char): State.Value = {
     if (c == '"') State.PARAM_QUOTED_OPEN
-    else if (Character.isDigit(c) || c == '.') State.PARAM_NUMERIC
+    else if (Character.isDigit(c) || c == '.' || c == '-') State.PARAM_NUMERIC
     else if (Character.isAlphabetic(c)) State.PARAM_LITERAL
     else State.INVALID
   }
@@ -146,12 +146,12 @@ object FunctionCallParser {
       else if (prevState == State.PARAM_NUMERIC) inParamNumeric(c)
       else State.INVALID
 
-      println("STATE: " + currentState)
+      //println("STATE: " + currentState)
 
       // End of function name
       if (currentState == State.OPENING_BRACKET && prevState == State.FUNCTION_NAME) {
         parsedFunctionCall = parsedFunctionCall.copy(functionName = functionCall.substring(0, i))
-        println("Got function name: " + parsedFunctionCall)
+        //println("Got function name: " + parsedFunctionCall)
       }
 
       // Start of a parameter
@@ -178,13 +178,12 @@ object FunctionCallParser {
 
       // End of function call
       if (currentState == State.CLOSE_BRACKET) {
-        println("Returning: " + parsedFunctionCall)
         return Some((parsedFunctionCall, i))
       }
 
       // Something went wrong with the parsing ...
       if (currentState == State.INVALID) {
-        println("INVALID STATE")
+        //println("INVALID STATE")
         return None
       }
     }

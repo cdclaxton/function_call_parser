@@ -44,10 +44,10 @@ class FunctionCallParserTest extends FlatSpec with Matchers {
   // -------------------------------------------------------------------------------------------------------------------
 
   it should "handle a single numeric value" in {
-    val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall("""fn(1)""")
+    val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall("""fn(0)""")
     result.isDefined should be (true)
     result.get should be (ParsedFunctionCall(functionName = "fn",
-      params = Seq(Parameter(tpe = ParameterType.NUMERIC, value = "1"))))
+      params = Seq(Parameter(tpe = ParameterType.NUMERIC, value = "0"))))
   }
 
   it should "handle a double digit numeric value" in {
@@ -90,6 +90,13 @@ class FunctionCallParserTest extends FlatSpec with Matchers {
     result.isDefined should be (true)
     result.get should be (ParsedFunctionCall(functionName = "fn",
       params = Seq(Parameter(tpe = ParameterType.NUMERIC, value = "123"))))
+  }
+
+  it should "handle a single negative numeric value" in {
+    val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall("""fn(-1)""")
+    result.isDefined should be (true)
+    result.get should be (ParsedFunctionCall(functionName = "fn",
+      params = Seq(Parameter(tpe = ParameterType.NUMERIC, value = "-1"))))
   }
 
   it should "handle a function with two numeric arguments" in {
@@ -149,6 +156,33 @@ class FunctionCallParserTest extends FlatSpec with Matchers {
     result.isDefined should be (true)
     result.get should be (ParsedFunctionCall(functionName = "fn",
       params = Seq(Parameter(tpe = ParameterType.LITERAL, value = "ab"))))
+  }
+
+  it should "handle a function with two literal arguments" in {
+    val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall("""fn(a,b)""")
+    result.isDefined should be (true)
+    result.get should be (ParsedFunctionCall(functionName = "fn",
+      params = Seq(
+        Parameter(tpe = ParameterType.LITERAL, value = "a"),
+        Parameter(tpe = ParameterType.LITERAL, value = "b"))))
+  }
+
+  it should "handle a function with two literal arguments separated with a space" in {
+    val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall("""fn(a, b)""")
+    result.isDefined should be (true)
+    result.get should be (ParsedFunctionCall(functionName = "fn",
+      params = Seq(
+        Parameter(tpe = ParameterType.LITERAL, value = "a"),
+        Parameter(tpe = ParameterType.LITERAL, value = "b"))))
+  }
+
+  it should "handle a function with two literal arguments separated with a space and a capital" in {
+    val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall("""fn(a, F)""")
+    result.isDefined should be (true)
+    result.get should be (ParsedFunctionCall(functionName = "fn",
+      params = Seq(
+        Parameter(tpe = ParameterType.LITERAL, value = "a"),
+        Parameter(tpe = ParameterType.LITERAL, value = "F"))))
   }
 
   // Quoted arguments

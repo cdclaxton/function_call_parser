@@ -273,6 +273,13 @@ class FunctionCallParserTest extends FlatSpec with Matchers {
       params = Seq(Parameter(tpe = ParameterType.QUOTED_STRING, value = """ab\"c"""))))
   }
 
+  it should "handle a single quoted parameter with Chinese characters" in {
+    val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall("""fn("㲧梍Û郓呸풕胫륺с룍럜馾գ픦ࠓ晣)")""")
+    result.isDefined should be(true)
+    result.get should be(ParsedFunctionCall(functionName = "fn",
+      params = Seq(Parameter(tpe = ParameterType.QUOTED_STRING, value = """㲧梍Û郓呸풕胫륺с룍럜馾գ픦ࠓ晣)"""))))
+  }
+
   // Literal and numeric arguments
   // -------------------------------------------------------------------------------------------------------------------
 

@@ -1,5 +1,6 @@
 package com.github.cdclaxton.FunctionCallParser
 
+import org.apache.commons.lang3.StringEscapeUtils
 import org.scalacheck.{Arbitrary, Gen, Prop, Properties}
 import org.scalacheck.Prop.BooleanOperators
 
@@ -12,7 +13,7 @@ object FunctionCallParserPropertyTest extends Properties("Function call parser")
     */
   val functionName: Gen[String] = for {
     start <- Gen.alphaChar
-    remainder <- Gen.alphaNumStr
+    remainder <- Gen.alphaStr
   } yield s"$start$remainder"
 
   val validFunctionName = functionName suchThat((x: String) => x.length > 0 && Character.isAlphabetic(x(0)))
@@ -22,8 +23,8 @@ object FunctionCallParserPropertyTest extends Properties("Function call parser")
     val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall(functionCall)
 
     result.isDefined :| "defined" &&
-      (result.get.functionName == functionName) :| "function name" &&
-      result.get.params.isEmpty :| "number of arguments"
+      (result.isDefined && result.get.functionName == functionName) :| "function name" &&
+      (result.isDefined && result.get.params.isEmpty) :| "number of arguments"
   }
 
   property("Single integer numeric argument") = Prop.forAll(validFunctionName) { functionName =>
@@ -33,10 +34,10 @@ object FunctionCallParserPropertyTest extends Properties("Function call parser")
       val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall(functionCall)
 
       result.isDefined :| "defined" &&
-        (result.get.functionName == functionName) :| "function name" &&
-        (result.get.params.length == 1) :| "number of arguments" &&
-        (result.get.params.head.tpe == ParameterType.NUMERIC) :| "parameter type" &&
-        (result.get.params.head.value == s"$value") :| "parameter value"
+        (result.isDefined && result.get.functionName == functionName) :| "function name" &&
+        (result.isDefined && result.get.params.length == 1) :| "number of arguments" &&
+        (result.isDefined && result.get.params.head.tpe == ParameterType.NUMERIC) :| "parameter type" &&
+        (result.isDefined && result.get.params.head.value == s"$value") :| "parameter value"
     }
   }
 
@@ -47,12 +48,12 @@ object FunctionCallParserPropertyTest extends Properties("Function call parser")
         val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall(functionCall)
 
         result.isDefined :| "defined" &&
-          (result.get.functionName == functionName) :| "function name" &&
-          (result.get.params.length == 2) :| "number of arguments" &&
-          (result.get.params.head.tpe == ParameterType.NUMERIC) :| "parameter type" &&
-          (result.get.params.head.value == s"$value1") :| "parameter value" &&
-          (result.get.params(1).tpe == ParameterType.NUMERIC) :| "parameter type" &&
-          (result.get.params(1).value == s"$value2") :| "parameter value"
+          (result.isDefined && result.get.functionName == functionName) :| "function name" &&
+          (result.isDefined && result.get.params.length == 2) :| "number of arguments" &&
+          (result.isDefined && result.get.params.head.tpe == ParameterType.NUMERIC) :| "parameter type" &&
+          (result.isDefined && result.get.params.head.value == s"$value1") :| "parameter value" &&
+          (result.isDefined && result.get.params(1).tpe == ParameterType.NUMERIC) :| "parameter type" &&
+          (result.isDefined && result.get.params(1).value == s"$value2") :| "parameter value"
       }
     }
   }
@@ -63,10 +64,10 @@ object FunctionCallParserPropertyTest extends Properties("Function call parser")
       val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall(functionCall)
 
       result.isDefined :| "defined" &&
-        (result.get.functionName == functionName) :| "function name" &&
-        (result.get.params.length == 1) :| "number of arguments" &&
-        (result.get.params.head.tpe == ParameterType.LITERAL) :| "parameter type" &&
-        (result.get.params.head.value == literal) :| "parameter value"
+        (result.isDefined && result.get.functionName == functionName) :| "function name" &&
+        (result.isDefined && result.get.params.length == 1) :| "number of arguments" &&
+        (result.isDefined && result.get.params.head.tpe == ParameterType.LITERAL) :| "parameter type" &&
+        (result.isDefined && result.get.params.head.value == literal) :| "parameter value"
     }
   }
 
@@ -78,12 +79,12 @@ object FunctionCallParserPropertyTest extends Properties("Function call parser")
         val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall(functionCall)
 
         result.isDefined :| "defined" &&
-          (result.get.functionName == functionName) :| "function name" &&
-          (result.get.params.length == 2) :| "number of arguments" &&
-          (result.get.params.head.tpe == ParameterType.LITERAL) :| "parameter type" &&
-          (result.get.params.head.value == literal1) :| "parameter value" &&
-          (result.get.params(1).tpe == ParameterType.LITERAL) :| "parameter type" &&
-          (result.get.params(1).value == literal2) :| "parameter value"
+          (result.isDefined && result.get.functionName == functionName) :| "function name" &&
+          (result.isDefined && result.get.params.length == 2) :| "number of arguments" &&
+          (result.isDefined && result.get.params.head.tpe == ParameterType.LITERAL) :| "parameter type" &&
+          (result.isDefined && result.get.params.head.value == literal1) :| "parameter value" &&
+          (result.isDefined && result.get.params(1).tpe == ParameterType.LITERAL) :| "parameter type" &&
+          (result.isDefined && result.get.params(1).value == literal2) :| "parameter value"
       }
     }
   }
@@ -95,10 +96,10 @@ object FunctionCallParserPropertyTest extends Properties("Function call parser")
       val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall(functionCall)
 
       result.isDefined :| "defined" &&
-        (result.get.functionName == functionName) :| "function name" &&
-        (result.get.params.length == 1) :| "number of arguments" &&
-        (result.get.params.head.tpe == ParameterType.QUOTED_STRING) :| "parameter type" &&
-        (result.get.params.head.value == str) :| "parameter value"
+        (result.isDefined && result.get.functionName == functionName) :| "function name" &&
+        (result.isDefined && result.get.params.length == 1) :| "number of arguments" &&
+        (result.isDefined && result.get.params.head.tpe == ParameterType.QUOTED_STRING) :| "parameter type" &&
+        (result.isDefined && result.get.params.head.value == str) :| "parameter value"
     }
   }
 
@@ -111,12 +112,12 @@ object FunctionCallParserPropertyTest extends Properties("Function call parser")
           val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall(functionCall)
 
           result.isDefined :| "defined" &&
-            (result.get.functionName == functionName) :| "function name" &&
-            (result.get.params.length == 2) :| "number of arguments" &&
-            (result.get.params.head.tpe == ParameterType.QUOTED_STRING) :| "parameter type 1" &&
-            (result.get.params.head.value == str1) :| "parameter value 1" &&
-            (result.get.params(1).tpe == ParameterType.QUOTED_STRING) :| "parameter type 2" &&
-            (result.get.params(1).value == str2) :| "parameter value 2"
+            (result.isDefined && result.get.functionName == functionName) :| "function name" &&
+            (result.isDefined && result.get.params.length == 2) :| "number of arguments" &&
+            (result.isDefined && result.get.params.head.tpe == ParameterType.QUOTED_STRING) :| "parameter type 1" &&
+            (result.isDefined && result.get.params.head.value == str1) :| "parameter value 1" &&
+            (result.isDefined && result.get.params(1).tpe == ParameterType.QUOTED_STRING) :| "parameter type 2" &&
+            (result.isDefined && result.get.params(1).value == str2) :| "parameter value 2"
         }
       }
     }
@@ -139,7 +140,7 @@ object FunctionCallParserPropertyTest extends Properties("Function call parser")
     */
   private val genStringParameter: Gen[Parameter] = for {
     value <- Arbitrary.arbitrary[String]
-  } yield Parameter(ParameterType.QUOTED_STRING, value)
+  } yield Parameter(ParameterType.QUOTED_STRING, StringEscapeUtils.escapeJava(value))
 
   /**
     * Generate an arbitrary literal parameter.
@@ -194,9 +195,9 @@ object FunctionCallParserPropertyTest extends Properties("Function call parser")
         val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall(functionCall)
 
         result.isDefined :| "defined" &&
-          (result.get.functionName == functionName) :| "function name" &&
-          (result.get.params.length == params.length) :| "number of parameters" &&
-          (result.get.params == params) :| "parameters correct"
+          (result.isDefined && result.get.functionName == functionName) :| "function name" &&
+          (result.isDefined && result.get.params.length == params.length) :| "number of parameters" &&
+          (result.isDefined && result.get.params == params) :| "parameters correct"
       }
     }
   }
@@ -209,9 +210,9 @@ object FunctionCallParserPropertyTest extends Properties("Function call parser")
         val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall(functionCall)
 
         result.isDefined :| "defined" &&
-          (result.get.functionName == functionName) :| "function name" &&
-          (result.get.params.length == params.length) :| "number of parameters" &&
-          (result.get.params == params) :| "parameters correct"
+          (result.isDefined && result.get.functionName == functionName) :| "function name" &&
+          (result.isDefined && result.get.params.length == params.length) :| "number of parameters" &&
+          (result.isDefined && result.get.params == params) :| "parameters correct"
       }
     }
   }
@@ -224,9 +225,9 @@ object FunctionCallParserPropertyTest extends Properties("Function call parser")
         val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall(functionCall)
 
         result.isDefined :| "defined" &&
-          (result.get.functionName == functionName) :| "function name" &&
-          (result.get.params.length == params.length) :| "number of parameters" &&
-          (result.get.params == params) :| "parameters correct"
+          (result.isDefined && result.get.functionName == functionName) :| "function name" &&
+          (result.isDefined && result.get.params.length == params.length) :| "number of parameters" &&
+          (result.isDefined && result.get.params == params) :| "parameters correct"
       }
     }
   }
@@ -239,9 +240,9 @@ object FunctionCallParserPropertyTest extends Properties("Function call parser")
         val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall(functionCall)
 
         result.isDefined :| "defined" &&
-          (result.get.functionName == functionName) :| "function name" &&
-          (result.get.params.length == params.length) :| "number of parameters" &&
-          (result.get.params == params) :| "parameters correct"
+          (result.isDefined && result.get.functionName == functionName) :| "function name" &&
+          (result.isDefined && result.get.params.length == params.length) :| "number of parameters" &&
+          (result.isDefined && result.get.params == params) :| "parameters correct"
       }
     }
   }

@@ -118,6 +118,8 @@ object FunctionCallParser {
     // If the length is insufficient for a valid call, then return.
     if (len < 3) return None
 
+    if (verbose) println("String: " + functionCall)
+
     // Break up the string into an array of characters so they can be walked over
     val arrayOfChars: Array[Char] = functionCall.toCharArray
 

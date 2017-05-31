@@ -153,7 +153,7 @@ class FunctionCallParserTest extends FlatSpec with Matchers {
   }
 
   it should "handle four arguments in scientific notation" in {
-    val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall("""mdr(-4.566476837630887E-37, 1.590256498E9, 7.5888587E8, 1.1527215368903861E269)""", true)
+    val result: Option[ParsedFunctionCall] = FunctionCallParser.parseFunctionCall("""mdr(-4.566476837630887E-37, 1.590256498E9, 7.5888587E8, 1.1527215368903861E269)""")
     result.isDefined should be (true)
     result.get should be(ParsedFunctionCall(functionName = "mdr",
       params = Seq(
